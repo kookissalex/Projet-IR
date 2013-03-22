@@ -16,33 +16,41 @@ public class CentralizedLinda implements Linda {
 
     private List<Tuple> memory;
     
-    private Map<Tuple,Callback> registryTake;
-    private Map<Tuple,Callback> registryRead;
+    private List<Event> registryTake;
+    private List<Event> registryRead;
 
     public CentralizedLinda() {
         this.memory = Collections.synchronizedList(new ArrayList<Tuple>());
-        this.registryRead = new ConcurrentHashMap<>();
-        this.registryTake = new ConcurrentHashMap<>();
+        this.registryRead = Collections.synchronizedList(new ArrayList<Event>());
+        this.registryTake = Collections.synchronizedList(new ArrayList<Event>());
     }
 
     // TO BE COMPLETED
 
     @Override
     public void write(Tuple t) {
-        for(Tuple template : this.registryRead.keySet())
+        synchronized (this.registryRead)
         {
-            if(t.matches(template))
+            for(Event readEvent : this.registryRead)
             {
-                this.registryRead.remove(template).call(t);
+                if(readEvent.isMatching(t))
+                {
+                    readEvent.call(t);
+                    this.registryRead.remove(readEvent);
+                }
             }
         }
         boolean taken = false;
-        for(Tuple template : this.registryTake.keySet())
+        synchronized (this.registryTake)
         {
-            if(t.matches(template) && !taken)
+            for(Event takeEvent : this.registryTake)
             {
-                this.registryTake.remove(template).call(t);
-                taken = true;
+                if(takeEvent.isMatching(t) && !taken)
+                {
+                    takeEvent.call(t);
+                    this.registryTake.remove(takeEvent);
+                    taken = true;
+                }
             }
         }
         if(!taken)
@@ -103,12 +111,15 @@ public class CentralizedLinda implements Linda {
 
     @Override
     public Tuple tryTake(Tuple template) {
-        for(Tuple tuple : this.memory)
+        synchronized(this.memory)
         {
-            if (tuple.matches(template))
+            for(Tuple tuple : this.memory)
             {
-                this.memory.remove(tuple);
-                return tuple;
+                if (tuple.matches(template))
+                {
+                    this.memory.remove(tuple);
+                    return tuple;
+                }
             }
         }
         return null;
@@ -116,12 +127,15 @@ public class CentralizedLinda implements Linda {
 
     @Override
     public Tuple tryRead(Tuple template) {
-        for(Tuple tuple : this.memory)
+        synchronized(this.memory)
         {
-            if (tuple.matches(template))
+            for(Tuple tuple : this.memory)
             {
-                System.out.println("I try read : " + tuple.toString());
-                return tuple;
+                if (tuple.matches(template))
+                {
+                    System.out.println("I try read : " + tuple.toString());
+                    return tuple;
+                }
             }
         }
         return null;
@@ -139,44 +153,53 @@ public class CentralizedLinda implements Linda {
 
     @Override
     public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) {
-        synchronized (this.memory)
+        if(timing.equals(eventTiming.IMMEDIATE))
         {
-            if(timing.equals(eventTiming.IMMEDIATE))
+            if(mode.equals(eventMode.READ))
             {
-                if(mode.equals(eventMode.READ))
+                Tuple tuple = this.tryRead(template);
+                if(tuple == null)
                 {
-                    Tuple tuple = this.tryRead(template);
-                    if(tuple == null)
+                    synchronized(this.registryRead)
                     {
-                        this.registryRead.put(template,callback);
-                    }
-                    else
-                    {
-                        callback.call(tuple);
+                        this.registryRead.add(new Event(template,callback));
                     }
                 }
                 else
                 {
-                    Tuple tuple = this.tryTake(template);
-                    if(tuple == null)
-                    {
-                        this.registryTake.put(template, callback);
-                    }
-                    else
-                    {
-                        callback.call(tuple);
-                    }
+                    callback.call(tuple);
                 }
             }
             else
             {
-                if(mode.equals(eventMode.READ))
+                Tuple tuple = this.tryTake(template);
+                if(tuple == null)
                 {
-                    this.registryRead.put(template,callback);
+                    synchronized(this.registryTake)
+                    {
+                        this.registryTake.add(new Event(template, callback));
+                    }
                 }
                 else
                 {
-                    this.registryTake.put(template,callback);                    
+                    callback.call(tuple);
+                }
+            }
+        }
+        else
+        {
+            if(mode.equals(eventMode.READ))
+            {
+                synchronized(this.registryRead)
+                {
+                    this.registryRead.add(new Event(template,callback));
+                }
+            }
+            else
+            {
+                synchronized(this.registryTake)
+                {
+                    this.registryTake.add(new Event(template,callback)); 
                 }
             }
         }
@@ -185,7 +208,10 @@ public class CentralizedLinda implements Linda {
 
     @Override
     public void debug(String prefix) {
-        System.out.println("Debug " + prefix + " : " + this.memory.toString());
+        synchronized(this.memory)
+        {
+            System.out.println("Debug " + prefix + " : " + this.memory.toString());
+        }
     }
 
 }
