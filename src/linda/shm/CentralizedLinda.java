@@ -1,7 +1,9 @@
 package linda.shm;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -214,7 +216,14 @@ public class CentralizedLinda implements Linda {
     //              Vide si aucun tuple n'a été trouvé
     @Override
     public Collection<Tuple> takeAll(Tuple template) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Tuple tuple;
+        Collection<Tuple> list = new ArrayList();
+        while((tuple = tryTake(template)) != null)
+        {
+            list.add(tuple);
+        }
+        System.out.println("I take all : " + list.toString());
+        return list;
     }
 
         
@@ -225,7 +234,16 @@ public class CentralizedLinda implements Linda {
     //              Vide si aucun tuple n'a été trouvé
     @Override
     public Collection<Tuple> readAll(Tuple template) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Collection<Tuple> list = new ArrayList();
+        for(Tuple tuple : this.memory)
+        {
+            if (tuple.matches(template))
+            {
+                list.add(tuple);
+            }
+        }
+        System.out.println("I read all : " + list.toString());
+        return list;
     }
 
     // procédure eventRegister :

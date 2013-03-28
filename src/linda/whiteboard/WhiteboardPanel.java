@@ -332,6 +332,7 @@ public class WhiteboardPanel extends Panel
 	        mode = -1;
 	        paint(getGraphics());
 	        setDrawMode(savemode);
+            linda.eventRegister(eventMode.READ, eventTiming.FUTURE, motifErase, this);
 		}	
     }
     
@@ -347,6 +348,7 @@ public class WhiteboardPanel extends Panel
             mode = -1;
             paint(getGraphics());
             setDrawMode(savemode);
+            linda.eventRegister(eventMode.READ, eventTiming.FUTURE, motifRectangle, this);
 		}
     }
 

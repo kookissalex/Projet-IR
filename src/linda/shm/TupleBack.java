@@ -4,6 +4,7 @@
  */
 package linda.shm;
 
+import java.io.Serializable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import linda.Callback;
@@ -13,7 +14,7 @@ import linda.Tuple;
  *
  * @author Zanatoshi
  */
-class TupleBack implements Callback {
+public class TupleBack implements Callback, Serializable {
 
     private Lock lock;
     private Tuple tuple;
@@ -40,5 +41,17 @@ class TupleBack implements Callback {
 
     public Tuple getTuple() {
         return tuple;
+    }
+
+    public void lock() {
+        this.lock.lock();
+    }
+
+    public void await() throws InterruptedException {
+        this.cond.await();
+    }
+
+    public void unlock() {
+        this.lock.unlock();
     }
 }
