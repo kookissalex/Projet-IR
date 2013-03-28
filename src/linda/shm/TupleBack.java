@@ -24,7 +24,8 @@ class TupleBack implements Callback {
     }
 
     @Override
-    public void call(Tuple t) {
+    public void call(Tuple t) 
+    {
         System.out.println("I was called with : " + t.toString());
         this.tuple = t;
         this.lock.lock();
