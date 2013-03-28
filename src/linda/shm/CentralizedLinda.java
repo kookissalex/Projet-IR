@@ -162,88 +162,133 @@ public class CentralizedLinda implements Linda {
     }
 
     // fonction tryTake
-    //
+    // Fait un take non bloquant.
     // param IN : Tuple template : template du take que l'on veut faire
-    // param OUT : Tuple trouvé en mémoire correspondant au template 
+    // param OUT : Tuple trouvé en mémoire correspondant au template. Null si aucun tuple trouvé
     @Override
-    public Tuple tryTake(Tuple template) {
+    public Tuple tryTake(Tuple template) 
+    {
+        // pour chaque tuple en mémoire partagée
         for(Tuple tuple : this.memory)
         {
+            // si le tuple courant correspond 
             if (tuple.matches(template))
             {
+                // enlève le premier tuple trouvé de la mémoire
                 this.memory.remove(tuple);
+                // retourne le tuple
                 return tuple;
             }
         }
+        // si aucun tuple n'a pas été trouvé : renvoi null
         return null;
     }
 
+    
+    // fonction tryRead
+    // Fait un read non bloquant.
+    // param IN : Tuple template : template du read que l'on veut faire
+    // param OUT : Tuple trouvé en mémoire correspondant au template. Null si aucun tuple trouvé
     @Override
-    public Tuple tryRead(Tuple template) {
+    public Tuple tryRead(Tuple template) 
+    {
+        // pour chaque tuple de la mémoire
         for(Tuple tuple : this.memory)
         {
+            // si le tuple courrant correspond au template
             if (tuple.matches(template))
             {
+                // retourne le premier tuple trouvé 
                 System.out.println("I try read : " + tuple.toString());
                 return tuple;
             }
         }
+         // si aucun tuple n'a pas été trouvé : renvoi null
         return null;
     }
 
+    // fonction takeAll :
+    // Recupère tous les tuples correspondants au template et les enlève de la mémoire partagée
+    // param IN : Tuple template : template du take que l'on veut faire
+    // param OUT : collection Tuple trouvés en mémoire correspondant au template. 
+    //              Vide si aucun tuple n'a été trouvé
     @Override
     public Collection<Tuple> takeAll(Tuple template) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+        
+    // fonction readAll :
+    // Recupère tous les tuples correspondants au template et les laisse dans la mémoire partagée
+    // param IN : Tuple template : template du read que l'on veut faire
+    // param OUT : collection Tuple trouvés en mémoire correspondant au template. 
+    //              Vide si aucun tuple n'a été trouvé
     @Override
     public Collection<Tuple> readAll(Tuple template) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    // procédure eventRegister :
+    // Enregistre les évenements dans la liste des registres s'ils sont en attente. Sinon execute le mode demandé si possible.
+    // param IN : mode : mode d'evenement (read ou take), timing : immédiat ou futur
+    //          template : template du tuple à chercher, callback : callback qui va réactiver le take ou le read
     @Override
     public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) {
+        // si c'est un évenement immédiat
         if(timing.equals(eventTiming.IMMEDIATE))
         {
+            // si c'est un read
             if(mode.equals(eventMode.READ))
             {
+                // essai d'un read
                 Tuple tuple = this.tryRead(template);
                 if(tuple == null)
                 {
+                    // si aucun tuple à lire n'a été trouvé en mémoire : ajout de l'évenement en attente au registre
                     this.registryRead.add(new Event(template,callback));
                 }
                 else
                 {
+                    // sinon débloque le read qui était en attente 
                     callback.call(tuple);
                 }
             }
             else
             {
+                // si c'est un take
+                // essai d'un take sur la mémoire partagée
                 Tuple tuple = this.tryTake(template);
                 if(tuple == null)
                 {
+                    // si aucun tuple n'a été trouvé : enregistrement de l'evenement dans le registre des take
                     this.registryTake.add(new Event(template, callback));
                 }
                 else
                 {
+                    // si un tuple a été trouvé : débloque le take qui était en attente
                     callback.call(tuple);
                 }
             }
         }
         else
         {
+            // si c'est un évenement futur
+            
             if(mode.equals(eventMode.READ))
             {
+                // si c'est un read : enregistrement dans le registre des read en attente
                 this.registryRead.add(new Event(template,callback));
             }
             else
             {
+                // si c'est un take : enregistrement dans le registre des take en attente
                 this.registryTake.add(new Event(template,callback));
             }
         }
         System.out.println("I registred : " + mode.name() + " " + template.toString());
     }
 
+    /** To debug, prints any information it wants (e.g. the tuples in tuplespace or the registered callbacks), prefixed by <code>prefix</code. */
     @Override
     public void debug(String prefix) {
         System.out.println("Debug " + prefix + " : " + this.memory.toString());
