@@ -1,12 +1,13 @@
 package linda.test;
 
-import linda.*;
+import linda.Linda;
+import linda.Tuple;
 
 public class BasicTest2 {
 
     public static void main(String[] a) {
-        //final Linda linda = new linda.shm.CentralizedLinda();
-        final Linda linda = new linda.server.LindaClient("rmi://127.0.0.1:8080/linda");
+        final Linda linda = new linda.shm.CentralizedLinda();
+        //final Linda linda = new linda.server.LindaClient("rmi://127.0.0.1:8080/linda");
 		
         for (int i = 1; i <= 3; i++) {
             final int j = i;
