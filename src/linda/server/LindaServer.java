@@ -31,7 +31,7 @@ import linda.shm.TupleBack;
 public class LindaServer extends UnicastRemoteObject implements LindaRMI {
 
     /**
-     * Le {@link CentralizedLinda} associé au serveur
+     * Le {@link CentralizedLinda} associé au serveur.
      */
     public Linda linda;
 
