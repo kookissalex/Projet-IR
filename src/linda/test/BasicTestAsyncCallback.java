@@ -13,7 +13,7 @@ public class BasicTestAsyncCallback {
     private static class MyCallback implements Callback {
         @Override
         public void call(Tuple t) {
-            try {
+           try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
@@ -41,7 +41,7 @@ public class BasicTestAsyncCallback {
         System.out.println("(2) write: " + t3);
         linda.write(t3);
 					
-        linda.debug("(2)");
+        linda.debug("(3)");
 
     }
 

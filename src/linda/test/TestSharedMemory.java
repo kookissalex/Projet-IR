@@ -5,6 +5,8 @@
 package linda.test;
 
 import java.util.Collection;
+import linda.Linda.eventMode;
+import linda.Linda.eventTiming;
 import linda.*;
 
 /**
@@ -13,6 +15,39 @@ import linda.*;
  */
 public class TestSharedMemory {
 
+    /**
+     * MyCallBack
+     */
+    private static class MyCallback11 implements Callback {
+
+        @Override
+        public void call(Tuple t) {
+            try {
+                Thread.sleep(0);
+            } catch (InterruptedException e) {
+            }
+            System.out.println("Got in test 11" + t);
+                  
+        }
+    }
+    
+      private static class MyCallback12 implements Callback {
+
+        @Override
+        public void call(Tuple t) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+            System.out.println("Got in test 12 " + t);
+                  
+        }
+    }
+
+    /**
+     *
+     * @param a
+     */
     public static void main(String[] a) {
 
         final Linda linda = new linda.shm.CentralizedLinda();
@@ -150,16 +185,31 @@ public class TestSharedMemory {
                 System.out.println("Resultat read all motif : " + motif3.toString() + " -> " + res10.toString());
                 System.out.println("test10 readAll vide OK ");
                 linda.debug("(10)");
+
+                // ------------ test 11 -----------------
+                System.out.println("---------- test11 eventRegister  - take immediat possible ----------");
+                // immediat qui marche
+                linda.eventRegister(eventMode.TAKE, eventTiming.IMMEDIATE, motif, new AsynchronousCallback(new MyCallback11()));
+               System.out.println("test11 take immediat possible : test OK ");
+                linda.debug("(11)");
                 
-                 // ------------ test 11 -----------------
-                 System.out.println("---------- test11 eventRegister ----------");
-                 // immediat qui marche
-                 
-                 
-                 // immediat qui ne marche pas
-                 
-                 // futur marche
-                 
+                // ------------ test 12 -----------------
+                System.out.println("---------- test12 eventRegister  - take immediat pas possible ----------");
+                // immediat qui ne marche pas et passe en future
+                linda.eventRegister(eventMode.TAKE, eventTiming.IMMEDIATE, motif2, new AsynchronousCallback(new MyCallback12()));
+                System.out.println("test12 en attente ajout motif template : "+ motif2.toString());
+              
+                Tuple t7 = new Tuple("test12", 1);
+                System.out.println("(7) write: " + t7);
+                linda.write(t7);
+
+                linda.debug("(12)");
+                
+                System.out.println("test12 take immediat passé en future : test OK ");
+               
+
+
+
 
             }
         }.start();
@@ -195,14 +245,14 @@ public class TestSharedMemory {
                 }
 
                 Tuple t3 = new Tuple(4, "test2");
-                System.out.println("(3) write: " + t3);
                 linda.write(t3);
+                System.out.println("(3) write: " + t3);
 
             }
         }.start();
 
 
-     
+
 
     }
 }
