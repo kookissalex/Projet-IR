@@ -11,7 +11,8 @@ import linda.*;
 
 /**
  *
- * @author alex_enseeiht
+ * @author Alexandra Jacquet
+ * @author Florian Vetu 
  */
 public class TestSharedMemory {
 
