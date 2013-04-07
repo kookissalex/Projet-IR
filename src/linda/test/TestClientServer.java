@@ -14,7 +14,7 @@ import linda.*;
  */
 public class TestClientServer {
 
-     /**
+    /**
      * MyCallBack
      */
     private static class MyCallback11 implements Callback {
@@ -26,11 +26,11 @@ public class TestClientServer {
             } catch (InterruptedException e) {
             }
             System.out.println("Got in test 11" + t);
-                  
+
         }
     }
-    
-      private static class MyCallback12 implements Callback {
+
+    private static class MyCallback12 implements Callback {
 
         @Override
         public void call(Tuple t) {
@@ -39,46 +39,27 @@ public class TestClientServer {
             } catch (InterruptedException e) {
             }
             System.out.println("Got in test 12 " + t);
-                  
+
         }
     }
-      
-     private static class MyCallback implements Callback {
+
+    private static class MyCallback implements Callback {
+
         @Override
         public void call(Tuple t) {
-           try {
+            try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
-            System.out.println("Got "+t);
+            System.out.println("Got " + t);
         }
     }
-	
+
     public static void main(String[] a) {
-        
-          final  Linda linda = new linda.server.LindaClient("rmi://127.0.0.1:8080/linda");
-			
-      /*  Tuple motif = new Tuple(Integer.class, String.class);
-        linda.eventRegister(Linda.eventMode.TAKE, Linda.eventTiming.IMMEDIATE, motif, new AsynchronousCallback(new MyCallback()));
-		
-        Tuple t1 = new Tuple(4, 5);
-        System.out.println("(2) write: " + t1);
-        linda.write(t1);
 
-        Tuple t2 = new Tuple("hello", 15);
-        System.out.println("(2) write: " + t2);
-        linda.write(t2);
-        linda.debug("(2)");
+        final Linda linda = new linda.server.LindaClient("rmi://127.0.0.1:8080/linda");
 
-        Tuple t3 = new Tuple(4, "foo");
-        System.out.println("(2) write: " + t3);
-        linda.write(t3);
-					
-        linda.debug("(3)"); */
-        
-        
-        
-                // test take non existant 
+        // test take non existant 
         new Thread() {
             public void run() {
                 try {
@@ -216,25 +197,25 @@ public class TestClientServer {
                 System.out.println("---------- test11 eventRegister  - take immediat possible ----------");
                 // immediat qui marche
                 linda.eventRegister(Linda.eventMode.TAKE, Linda.eventTiming.IMMEDIATE, motif, new AsynchronousCallback(new MyCallback11()));
-               System.out.println("test11 take immediat possible : test OK ");
+                System.out.println("test11 take immediat possible : test OK ");
                 linda.debug("(11)");
-                
+
                 // ------------ test 12 -----------------
                 System.out.println("---------- test12 eventRegister  - take immediat pas possible ----------");
                 // immediat qui ne marche pas et passe en future
                 linda.eventRegister(Linda.eventMode.TAKE, Linda.eventTiming.IMMEDIATE, motif2, new AsynchronousCallback(new MyCallback12()));
-                System.out.println("test12 en attente ajout motif template : "+ motif2.toString());
-              
+                System.out.println("test12 en attente ajout motif template : " + motif2.toString());
+
                 Tuple t7 = new Tuple("test12", 1);
                 System.out.println("(7) write: " + t7);
                 linda.write(t7);
 
                 linda.debug("(12)");
-                
+
                 System.out.println("test12 take immediat passé en future : test OK ");
-               
-
-
+                
+                //on enlève le tuple restant pour vider la mémoire
+                Tuple res13 = linda.take(motif);
 
 
             }
