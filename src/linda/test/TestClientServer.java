@@ -58,6 +58,7 @@ public class TestClientServer {
     public static void main(String[] a) {
 
         final Linda linda = new linda.server.LindaClient("rmi://127.0.0.1:8080/linda");
+        final Linda linda2 = new linda.server.LindaClient("rmi://127.0.0.1:8080/linda");
 
         // test take non existant 
         new Thread() {
@@ -216,6 +217,20 @@ public class TestClientServer {
                 
                 //on enlève le tuple restant pour vider la mémoire
                 Tuple res13 = linda.take(motif);
+                
+                //----------- test13 ---------------------------
+                 System.out.println("---------- test13 client1 : take bloquant / client2 : write qui débloque le client1 ----------");
+                 System.out.println("attente du client1 ");
+                 Tuple res14 = linda.take(motif); 
+                // affichage enregistrement du take
+                // take bloquant
+
+                // réalisation des write par un deuxieme client dans un autre thread
+
+                // débloqué
+                System.out.println("(13) Resultat du take client1 :" + res14);
+                System.out.println("test13 take OK ");
+                linda.debug("(13)");
 
 
             }
@@ -254,6 +269,22 @@ public class TestClientServer {
                 Tuple t3 = new Tuple(4, "test2");
                 linda.write(t3);
                 System.out.println("(3) write: " + t3);
+
+            }
+        }.start();
+        
+         //write d'un tuple par le deuxieme client attendu pour le take
+        new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                Tuple t13 = new Tuple(13, "test13");
+                linda2.write(t13);
+                System.out.println("(13) write client2: " + t13);
 
             }
         }.start();
